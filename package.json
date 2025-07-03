@@ -1,0 +1,42 @@
+{
+  "name": "tennis-court-monitor",
+  "version": "1.0.0",
+  "description": "中南大学网球场预约监控助手",
+  "main": "background.js",
+  "scripts": {
+    "build": "echo 'Chrome extension ready for installation'",
+    "test": "echo 'No tests specified'",
+    "lint": "echo 'Linting Chrome extension files'",
+    "package": "echo 'Use Chrome extensions page to package'"
+  },
+  "keywords": [
+    "chrome-extension",
+    "tennis",
+    "reservation",
+    "monitor",
+    "notification"
+  ],
+  "author": "Tennis Monitor Assistant",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/tennis-court-monitor"
+  },
+  "engines": {
+    "chrome": ">=88.0.0"
+  },
+  "devDependencies": {},
+  "dependencies": {},
+  "manifest": {
+    "version": 3,
+    "permissions": [
+      "activeTab",
+      "notifications", 
+      "storage",
+      "scripting"
+    ],
+    "host_permissions": [
+      "https://ehall.csu.edu.cn/*"
+    ]
+  }
+}

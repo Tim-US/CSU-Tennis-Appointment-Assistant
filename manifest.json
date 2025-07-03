@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "网球场预约监控助手",
+  "version": "1.3.1",
+  "description": "监控网球场预约页面，当出现可约时间时发送通知",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "notifications",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://ehall.csu.edu.cn/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://ehall.csu.edu.cn/v2/reserve/reserveDetail*",
+        "https://ehall.csu.edu.cn/*reserve*",
+        "https://ehall.csu.edu.cn/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "网球场监控设置"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["emergency-fix.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网球场预约监控测试 - 中南大学场馆预约</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .status-tips {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #bbdefb;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .venue-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .venue-table th, .venue-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .venue-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .available {
+            background-color: #d4edda;
+            color: #155724;
+            font-weight: bold;
+        }
+        
+        .unavailable {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+        }
+        
+        .debug-info {
+            background: #f1f3f4;
+            border-left: 4px solid #4285f4;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #log-container {
+            background-color: #333;
+            color: #f0f0f0;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            height: 300px;
+            overflow-y: scroll;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        #log-container .log-entry {
+            padding: 2px 0;
+            border-bottom: 1px solid #444;
+        }
+
+        #log-container .log-time {
+            color: #888;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎾 网球场预约监控测试</h1>
+        <p>测试监控插件的准确性和性能</p>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 监控测试说明</h2>
+        <div class="status-tips">
+            💡 <strong>使用方法：</strong><br>
+            1. 打开Chrome扩展的popup界面<br>
+            2. 点击"开始监控"按钮<br>
+            3. 刷新此页面测试自动监控<br>
+            4. 查看浏览器控制台(F12)的详细日志
+        </div>
+        <div class="debug-info" id="debugInfo">
+            调试信息将显示在这里...<br>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 动态测试控制</h2>
+        <button class="btn btn-success" onclick="addAvailableSlots()">添加可预约时段</button>
+        <button class="btn" onclick="removeAvailableSlots()">移除可预约时段</button>
+        <button class="btn" onclick="simulateLoading()">模拟页面加载</button>
+        <button class="btn" onclick="clearLogs()">清空日志</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🏆 网球场预约表</h2>
+        <table class="venue-table" id="venueTable">
+            <thead>
+                <tr>
+                    <th>时间</th>
+                    <th>1号场地</th>
+                    <th>2号场地</th>
+                    <th>3号场地</th>
+                    <th>4号场地</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>08:00-09:00</td>
+                    <td class="unavailable">已预约</td>
+                    <td class="available">可预约 ￥40元</td>
+                    <td class="unavailable">不可预约</td>
+                    <td class="available">可预约 ￥40元</td>
+                </tr>
+                <tr>
+                    <td>09:00-10:00</td>
+                    <td class="available">可预约 ￥40元</td>
+                    <td class="unavailable">已预约</td>
+                    <td class="available">可预约 ￥40元</td>
+                    <td class="unavailable">预约满</td>
+                </tr>
+                <tr>
+                    <td>14:00-15:00</td>
+                    <td class="available">可预约 ￥35元</td>
+                    <td class="available">可预约 ￥35元</td>
+                    <td class="unavailable">不可预约</td>
+                    <td class="available">可预约 ￥35元</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <h2>实时日志 (来自插件内容脚本)</h2>
+        <div id="log-container"></div>
+    </div>
+
+    <div class="debug-info">
+        <p><strong>调试信息:</strong></p>
+        <p>此页面用于验证插件能否正确识别“可预约”状态并触发通知，同时忽略“已预约”、“已选择”等干扰项。</p>
+    </div>
+
+    <script>
+        const scheduleContainer = document.getElementById('schedule-container');
+        const logContainer = document.getElementById('log-container');
+        const venueTable = document.getElementById('venueTable');
+        const debugInfo = document.getElementById('debugInfo');
+
+        // 重写 console.log 以便在页面上显示日志
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'log-time';
+            timeSpan.textContent = new Date().toLocaleTimeString();
+            logEntry.appendChild(timeSpan);
+
+            const message = args.map(arg => {
+                if (typeof arg === 'object' && arg !== null) {
+                    try {
+                        return JSON.stringify(arg, null, 2);
+                    } catch (e) {
+                        return '[Circular Object]';
+                    }
+                } else {
+                    return String(arg);
+                }
+            }).join(' ');
+            logEntry.appendChild(document.createTextNode(message));
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        };
+
+        const originalError = console.error;
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.style.color = '#ff6b6b';
+            logEntry.innerHTML = `<span class="log-time">${new Date().toLocaleTimeString()}</span> ❌ ${args.join(' ')}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        };
+
+        function clearLogs() {
+            logContainer.innerHTML = '';
+        }
+
+        // 添加可预约时段
+        function addAvailableSlots() {
+            console.log('🔄 添加可预约时段');
+            const rows = venueTable.querySelectorAll('tbody tr');
+            // 随机选择1-3个单元格改为"可预约"
+            let changed = 0;
+            for (let i = 0; i < rows.length && changed < 3; i++) {
+                const cells = rows[i].querySelectorAll('td:not(:first-child)');
+                for (let j = 0; j < cells.length && changed < 3; j++) {
+                    if (Math.random() < 0.3 && !cells[j].classList.contains('available')) {
+                        cells[j].textContent = '可预约 ￥' + (Math.floor(Math.random() * 20) + 30) + '元';
+                        cells[j].className = 'available';
+                        changed++;
+                    }
+                }
+            }
+            debugInfo.innerHTML = `已添加 ${changed} 个可预约时段，当前共有 ${document.querySelectorAll('td.available').length} 个可预约时段`;
+            console.log(`✅ 已添加 ${changed} 个可预约时段，当前共有 ${document.querySelectorAll('td.available').length} 个可预约时段`);
+        }
+
+        // 移除可预约时段
+        function removeAvailableSlots() {
+            console.log('🔄 移除可预约时段');
+            const availableCells = document.querySelectorAll('td.available');
+            let changed = 0;
+            availableCells.forEach(cell => {
+                if (Math.random() < 0.7) {
+                    const states = ['已预约', '不可预约', '预约满', '已满'];
+                    cell.textContent = states[Math.floor(Math.random() * states.length)];
+                    cell.className = 'unavailable';
+                    changed++;
+                }
+            });
+            debugInfo.innerHTML = `已移除 ${changed} 个可预约时段，当前剩余 ${document.querySelectorAll('td.available').length} 个可预约时段`;
+            console.log(`✅ 已移除 ${changed} 个可预约时段，当前剩余 ${document.querySelectorAll('td.available').length} 个可预约时段`);
+        }
+
+        // 模拟页面加载状态
+        function simulateLoading() {
+            console.log('🔄 模拟页面加载中...');
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.zIndex = '9999';
+            overlay.innerHTML = '<div style="text-align:center"><div style="width:50px;height:50px;border:5px solid #f3f3f3;border-top:5px solid #3498db;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;"></div><p style="margin-top:10px">页面加载中...</p></div>';
+            document.body.appendChild(overlay);
+
+            // 添加动画样式
+            const style = document.createElement('style');
+            style.textContent = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+            document.head.appendChild(style);
+
+            setTimeout(() => {
+                overlay.remove();
+                console.log('✅ 页面加载完成');
+                debugInfo.innerHTML = '页面加载模拟完成';
+            }, 3000);
+        }
+
+        function createSchedule(data) {
+            const table = document.createElement('table');
+            table.className = 'venue-table';
+            const thead = document.createElement('thead');
+            const tbody = document.createElement('tbody');
+            
+            // 表头
+            const headerRow = document.createElement('tr');
+            Object.keys(data[0]).forEach(key => {
+                const th = document.createElement('th');
+                th.textContent = key === 'time' ? '时间' : `${key}号场地`;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            
+            // 表身
+            data.forEach(rowData => {
+                const row = document.createElement('tr');
+                Object.values(rowData).forEach(cellData => {
+                    const td = document.createElement('td');
+                    td.textContent = cellData;
+                    row.appendChild(td);
+                });
+                tbody.appendChild(row);
+            });
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            
+            scheduleContainer.innerHTML = '';
+            scheduleContainer.appendChild(table);
+        }
+
+        function showAvailable() {
+            console.log('--- 场景切换: 模拟“可预约”出现 ---');
+            const data = [
+                { time: '14:00-15:00', court1: '已预约', court2: '可预约', court3: '不可预约' },
+                { time: '15:00-16:00', court1: '可预约', court2: '可预约', court3: '已预约' },
+                { time: '16:00-17:00', court1: '不可预约', court2: '已预约', court3: '可预约' }
+            ];
+            createSchedule(data);
+        }
+
+        function showMixed() {
+            console.log('--- 场景切换: 模拟“混合状态” ---');
+            const data = [
+                { time: '18:00-19:00', court1: '已选择', court2: '可预约 (学生个人预约)', court3: '已预约' },
+                { time: '19:00-20:00', court1: '已预约', court2: '已满', court3: '可预约' },
+                { time: '20:00-21:00', court1: '不可预约', court2: '已预约', court3: '已选择' }
+            ];
+            createSchedule(data);
+        }
+
+        function showUnavailable() {
+            console.log('--- 场景切换: 模拟“全部不可预约” ---');
+            const data = [
+                { time: '09:00-10:00', court1: '已预约', court2: '已满', court3: '不可预约' },
+                { time: '10:00-11:00', court1: '不可预约', court2: '已预约', court3: '已预约' },
+                { time: '11:00-12:00', court1: '已满', court2: '已满', court3: '已满' }
+            ];
+            createSchedule(data);
+        }
+
+        function showPopup() {
+            console.log('--- 场景切换: 模拟“弹窗出现” ---');
+            const popup = document.createElement('div');
+            popup.style.position = 'fixed';
+            popup.style.left = '50%';
+            popup.style.top = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+            popup.style.backgroundColor = 'white';
+            popup.style.padding = '30px';
+            popup.style.border = '1px solid #ccc';
+            popup.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
+            popup.style.zIndex = '1000';
+            popup.className = 'layui-layer'; // 模拟一个常见的弹窗类名
+            popup.innerHTML = `
+                <h3>温馨提示</h3>
+                <p>请先登录后再进行操作。</p>
+                <button class="btn btn-success" onclick="this.parentElement.remove()">好的</button>
+            `;
+            document.body.appendChild(popup);
+        }
+
+        // 初始状态
+        showUnavailable();
+    </script>
+</body>
+</html>

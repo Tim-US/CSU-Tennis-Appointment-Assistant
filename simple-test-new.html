@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网球场预订系统 - 测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            text-align: center;
+            background-color: #2c5282;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .date-controls {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .date-btn {
+            background-color: #4299e1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .date-btn:hover {
+            background-color: #3182ce;
+        }
+        
+        .date-btn.active {
+            background-color: #2b6cb0;
+        }
+        
+        .court-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .court-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .court-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .time-slot {
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .time-slot.available {
+            background-color: #c6f6d5;
+            border-color: #48bb78;
+            color: #22543d;
+        }
+        
+        .time-slot.available:hover {
+            background-color: #9ae6b4;
+        }
+        
+        .time-slot.unavailable {
+            background-color: #fed7d7;
+            border-color: #e53e3e;
+            color: #742a2a;
+            cursor: not-allowed;
+        }
+        
+        .time-slot.selected {
+            background-color: #bee3f8;
+            border-color: #3182ce;
+            color: #2c5282;
+        }
+        
+        .controls {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .control-btn {
+            background-color: #48bb78;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .control-btn:hover {
+            background-color: #38a169;
+        }
+        
+        .control-btn.danger {
+            background-color: #e53e3e;
+        }
+        
+        .control-btn.danger:hover {
+            background-color: #c53030;
+        }
+        
+        .log-container {
+            background-color: #1a202c;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        
+        .log-timestamp {
+            color: #718096;
+        }
+        
+        .status-bar {
+            background-color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-indicator.active {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .status-indicator.inactive {
+            background-color: #fed7d7;
+            color: #742a2a;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎾 网球场预订系统</h1>
+        <p>插件调试测试页面 - 支持日期切换和可预约状态模拟</p>
+    </div>
+    
+    <div class="status-bar">
+        <div>
+            <span>当前日期: </span>
+            <span id="current-date">今天</span>
+        </div>
+        <div>
+            <span>监控状态: </span>
+            <span id="monitor-status" class="status-indicator inactive">未监控</span>
+        </div>
+    </div>
+    
+    <div class="date-controls">
+        <h3>📅 日期选择</h3>
+        <button class="date-btn active" id="today-btn">今天</button>
+        <button class="date-btn" id="tomorrow-btn">后一天</button>
+        <button class="date-btn" id="day-after-btn">后两天</button>
+    </div>
+    
+    <div class="controls">
+        <h3>🔧 测试控制</h3>
+        <button class="control-btn" id="add-available">添加可预约时段</button>
+        <button class="control-btn" id="remove-available">移除可预约时段</button>
+        <button class="control-btn" id="toggle-mix">切换混合状态</button>
+        <button class="control-btn danger" id="clear-all">清空所有时段</button>
+        <button class="control-btn" id="simulate-real">模拟真实场景</button>
+    </div>
+    
+    <div class="court-grid" id="court-grid">
+        <!-- 场地将通过 JavaScript 动态生成 -->
+    </div>
+    
+    <div class="controls">
+        <h3>📊 调试日志</h3>
+        <button class="control-btn" id="clear-log">清空日志</button>
+        <button class="control-btn" id="export-log">导出日志</button>
+    </div>
+    
+    <div class="log-container" id="log-container">
+        <div class="log-entry">
+            <span class="log-timestamp">[初始化]</span> 测试页面已加载，等待插件检测...
+        </div>
+    </div>
+
+    <script>
+        class TestPage {
+            constructor() {
+                this.currentDate = 'today';
+                this.courts = this.generateCourts();
+                this.initializeEventListeners();
+                this.renderCourts();
+                this.startLogging();
+                
+                // 模拟插件可能检测的页面状态
+                this.pageStates = [
+                    'normal', // 正常状态
+                    'available', // 有可预约时段
+                    'mixed', // 混合状态（有些可预约，有些已选择）
+                    'all-booked' // 全部已预订
+                ];
+                this.currentState = 'normal';
+                
+                this.log('✅ 测试页面初始化完成');
+                this.log('📅 当前显示: ' + this.currentDate);
+            }
+            
+            generateCourts() {
+                const courts = [];
+                const courtNames = ['1号场地', '2号场地', '3号场地', '4号场地'];
+                const timeSlots = [
+                    '08:00-09:00', '09:00-10:00', '10:00-11:00', '11:00-12:00',
+                    '14:00-15:00', '15:00-16:00', '16:00-17:00', '17:00-18:00',
+                    '18:00-19:00', '19:00-20:00', '20:00-21:00', '21:00-22:00'
+                ];
+                
+                courtNames.forEach(courtName => {
+                    const court = {
+                        name: courtName,
+                        slots: timeSlots.map(time => ({
+                            time: time,
+                            status: 'unavailable', // 'available', 'unavailable', 'selected'
+                            id: `${courtName}-${time}`
+                        }))
+                    };
+                    courts.push(court);
+                });
+                
+                return courts;
+            }
+            
+            initializeEventListeners() {
+                // 日期切换按钮
+                document.getElementById('today-btn').addEventListener('click', () => this.switchDate('today'));
+                document.getElementById('tomorrow-btn').addEventListener('click', () => this.switchDate('tomorrow'));
+                document.getElementById('day-after-btn').addEventListener('click', () => this.switchDate('day-after'));
+                
+                // 控制按钮
+                document.getElementById('add-available').addEventListener('click', () => this.addAvailableSlots());
+                document.getElementById('remove-available').addEventListener('click', () => this.removeAvailableSlots());
+                document.getElementById('toggle-mix').addEventListener('click', () => this.toggleMixedState());
+                document.getElementById('clear-all').addEventListener('click', () => this.clearAllSlots());
+                document.getElementById('simulate-real').addEventListener('click', () => this.simulateRealScenario());
+                
+                // 日志控制
+                document.getElementById('clear-log').addEventListener('click', () => this.clearLog());
+                document.getElementById('export-log').addEventListener('click', () => this.exportLog());
+            }
+            
+            switchDate(date) {
+                this.currentDate = date;
+                
+                // 更新按钮状态
+                document.querySelectorAll('.date-btn').forEach(btn => btn.classList.remove('active'));
+                if (date === 'today') {
+                    document.getElementById('today-btn').classList.add('active');
+                    document.getElementById('current-date').textContent = '今天';
+                } else if (date === 'tomorrow') {
+                    document.getElementById('tomorrow-btn').classList.add('active');
+                    document.getElementById('current-date').textContent = '明天';
+                } else if (date === 'day-after') {
+                    document.getElementById('day-after-btn').classList.add('active');
+                    document.getElementById('current-date').textContent = '后天';
+                }
+                
+                this.log(`📅 切换到: ${date} (${document.getElementById('current-date').textContent})`);
+                
+                // 重置场地状态（模拟不同日期的不同状态）
+                this.resetCourtsForDate(date);
+                this.renderCourts();
+            }
+            
+            resetCourtsForDate(date) {
+                this.courts.forEach(court => {
+                    court.slots.forEach(slot => {
+                        slot.status = 'unavailable'; // 默认都不可预约
+                    });
+                });
+                
+                // 根据日期模拟不同的可预约情况
+                if (date === 'tomorrow') {
+                    // 明天有更多可预约时段
+                    this.addRandomAvailableSlots(8);
+                } else if (date === 'today') {
+                    // 今天只有少量可预约时段
+                    this.addRandomAvailableSlots(3);
+                } else {
+                    // 后天有中等数量可预约时段
+                    this.addRandomAvailableSlots(5);
+                }
+            }
+            
+            addRandomAvailableSlots(count) {
+                const allSlots = [];
+                this.courts.forEach(court => {
+                    court.slots.forEach(slot => {
+                        allSlots.push(slot);
+                    });
+                });
+                
+                // 随机选择一些时段设为可预约
+                for (let i = 0; i < count && i < allSlots.length; i++) {
+                    const randomIndex = Math.floor(Math.random() * allSlots.length);
+                    allSlots[randomIndex].status = 'available';
+                }
+            }
+            
+            addAvailableSlots() {
+                let addedCount = 0;
+                this.courts.forEach(court => {
+                    court.slots.forEach(slot => {
+                        if (slot.status === 'unavailable' && Math.random() < 0.3) {
+                            slot.status = 'available';
+                            addedCount++;
+                        }
+                    });
+                });
+                
+                this.log(`➕ 添加了 ${addedCount} 个可预约时段`);
+                this.renderCourts();
+            }
+            
+            removeAvailableSlots() {
+                let removedCount = 0;
+                this.courts.forEach(court => {
+                    court.slots.forEach(slot => {
+                        if (slot.status === 'available') {
+                            slot.status = 'unavailable';
+                            removedCount++;
+                        }
+                    });
+                });
+                
+                this.log(`➖ 移除了 ${removedCount} 个可预约时段`);
+                this.renderCourts();
+            }
+            
+            toggleMixedState() {
+                let changedCount = 0;
+                this.courts.forEach(court => {
+                    court.slots.forEach(slot => {
+                        if (slot.status === 'available' && Math.random() < 0.4) {
+                            slot.status = 'selected';
+                            changedCount++;
+                        } else if (slot.status === 'selected') {
+                            slot.status = 'available';
+                            changedCount++;
+                        }
+                    });
+                });
+                
+                this.log(`🔄 切换了 ${changedCount} 个时段的状态（可预约⟷已选择）`);
+                this.renderCourts();
+            }
+            
+            clearAllSlots() {
+                this.courts.forEach(court => {
+                    court.slots.forEach(slot => {
+                        slot.status = 'unavailable';
+                    });
+                });
+                
+                this.log('🗑️ 清空了所有时段状态');
+                this.renderCourts();
+            }
+            
+            simulateRealScenario() {
+                // 模拟真实的预约场景
+                this.clearAllSlots();
+                
+                // 添加一些可预约时段
+                const scenarios = [
+                    { description: '早晨有少量空档', slots: 2, timePattern: /^0[89]/ },
+                    { description: '下午高峰期有空档', slots: 3, timePattern: /^1[456]/ },
+                    { description: '晚上黄金时段有空档', slots: 4, timePattern: /^(18|19|20)/ },
+                    { description: '全天分散空档', slots: 6, timePattern: null }
+                ];
+                
+                const scenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+                this.log(`🎬 模拟场景: ${scenario.description}`);
+                
+                let addedCount = 0;
+                this.courts.forEach(court => {
+                    court.slots.forEach(slot => {
+                        if (addedCount < scenario.slots) {
+                            if (!scenario.timePattern || scenario.timePattern.test(slot.time)) {
+                                if (Math.random() < 0.6) {
+                                    slot.status = 'available';
+                                    addedCount++;
+                                }
+                            }
+                        }
+                    });
+                });
+                
+                // 随机添加一些已选择的时段（模拟其他用户正在预约）
+                let selectedCount = 0;
+                this.courts.forEach(court => {
+                    court.slots.forEach(slot => {
+                        if (slot.status === 'unavailable' && selectedCount < 2 && Math.random() < 0.1) {
+                            slot.status = 'selected';
+                            selectedCount++;
+                        }
+                    });
+                });
+                
+                this.log(`✨ 场景设置完成: ${addedCount} 个可预约，${selectedCount} 个已选择`);
+                this.renderCourts();
+            }
+            
+            renderCourts() {
+                const courtGrid = document.getElementById('court-grid');
+                courtGrid.innerHTML = '';
+                
+                let totalAvailable = 0;
+                let totalSelected = 0;
+                
+                this.courts.forEach(court => {
+                    const courtCard = document.createElement('div');
+                    courtCard.className = 'court-card';
+                    
+                    const courtTitle = document.createElement('div');
+                    courtTitle.className = 'court-title';
+                    courtTitle.textContent = court.name;
+                    courtCard.appendChild(courtTitle);
+                    
+                    const timeSlots = document.createElement('div');
+                    timeSlots.className = 'time-slots';
+                    
+                    court.slots.forEach(slot => {
+                        const slotElement = document.createElement('div');
+                        slotElement.className = `time-slot ${slot.status}`;
+                        slotElement.textContent = slot.time;
+                        
+                        if (slot.status === 'available') {
+                            slotElement.textContent += ' 可预约';
+                            totalAvailable++;
+                        } else if (slot.status === 'selected') {
+                            slotElement.textContent += ' 已选择';
+                            totalSelected++;
+                        }
+                        
+                        slotElement.addEventListener('click', () => {
+                            this.toggleSlotStatus(slot);
+                            this.renderCourts();
+                        });
+                        
+                        timeSlots.appendChild(slotElement);
+                    });
+                    
+                    courtCard.appendChild(timeSlots);
+                    courtGrid.appendChild(courtCard);
+                });
+                
+                // 更新监控状态显示
+                const statusElement = document.getElementById('monitor-status');
+                if (totalAvailable > 0) {
+                    statusElement.textContent = `发现 ${totalAvailable} 个可预约时段`;
+                    statusElement.className = 'status-indicator active';
+                } else {
+                    statusElement.textContent = '无可预约时段';
+                    statusElement.className = 'status-indicator inactive';
+                }
+                
+                this.log(`📊 页面更新: ${totalAvailable} 个可预约，${totalSelected} 个已选择`);
+            }
+            
+            toggleSlotStatus(slot) {
+                const statusOrder = ['unavailable', 'available', 'selected'];
+                const currentIndex = statusOrder.indexOf(slot.status);
+                const nextIndex = (currentIndex + 1) % statusOrder.length;
+                slot.status = statusOrder[nextIndex];
+                
+                this.log(`🖱️ 手动切换 ${slot.id}: ${slot.status}`);
+            }
+            
+            log(message) {
+                const logContainer = document.getElementById('log-container');
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                
+                const timestamp = new Date().toLocaleTimeString();
+                logEntry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+                
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+                
+                // 控制台也输出，方便插件调试
+                console.log(`[测试页面] ${message}`);
+            }
+            
+            clearLog() {
+                document.getElementById('log-container').innerHTML = '';
+                this.log('🗑️ 日志已清空');
+            }
+            
+            exportLog() {
+                const logEntries = document.querySelectorAll('.log-entry');
+                let logText = '';
+                logEntries.forEach(entry => {
+                    logText += entry.textContent + '\n';
+                });
+                
+                const blob = new Blob([logText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `tennis-plugin-test-log-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                this.log('📁 日志已导出');
+            }
+            
+            startLogging() {
+                // 定期输出页面状态，帮助插件调试
+                setInterval(() => {
+                    const availableCount = this.courts.reduce((total, court) => {
+                        return total + court.slots.filter(slot => slot.status === 'available').length;
+                    }, 0);
+                    
+                    if (availableCount > 0) {
+                        this.log(`🔍 定期检查: 当前有 ${availableCount} 个可预约时段`);
+                    }
+                }, 30000); // 每30秒输出一次状态
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            window.testPage = new TestPage();
+        });
+        
+        // 为插件提供的调试接口
+        window.getTestPageStatus = function() {
+            return {
+                currentDate: window.testPage?.currentDate || 'unknown',
+                availableSlots: window.testPage?.courts?.reduce((total, court) => {
+                    return total + court.slots.filter(slot => slot.status === 'available').length;
+                }, 0) || 0,
+                totalSlots: window.testPage?.courts?.reduce((total, court) => {
+                    return total + court.slots.length;
+                }, 0) || 0
+            };
+        };
+    </script>
+</body>
+</html>
